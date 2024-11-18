@@ -40,12 +40,14 @@ jobs:
         key: ${{ secrets.SERVER_SSH_KEY }}
         port: 22
         script: |
+          echo "Début du déploiement sur le serveur"
           # Nettoyer l'ancienne version de l'application
           rm -rf /var/www/ghpagedemo/dist
           mkdir -p /var/www/ghpagedemo/dist
           
           # Décompresser et déployer la nouvelle version
           tar -xzvf build.tar.gz -C /var/www/ghpagedemo
+        debug: true
 
     # 6. Restart Nginx (if necessary)
     - name: Restart Nginx
@@ -56,4 +58,6 @@ jobs:
         key: ${{ secrets.SERVER_SSH_KEY }}
         port: 22
         script: |
+          echo "Redémarrage de Nginx"
           sudo systemctl restart nginx
+        debug: true
