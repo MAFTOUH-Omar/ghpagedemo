@@ -10,28 +10,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Checkout the repository
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # 2. Install Node.js (version 20)
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '20'
 
-    # 3. Install dependencies and build the project with Vite.js
     - name: Install dependencies
       run: npm install
 
     - name: Build the project
       run: npm run build
 
-    # 4. Archive the build folder
     - name: Archive build folder
       run: tar -czf build.tar.gz dist
 
-    # 5. Deploy to the server
+    - name: Add known hosts
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+        chmod 600 ~/.ssh/known_hosts
+
     - name: Deploy to server
       uses: appleboy/ssh-action@v0.1.6
       with:
@@ -40,24 +41,8 @@ jobs:
         key: ${{ secrets.SERVER_SSH_KEY }}
         port: 22
         script: |
-          echo "Début du déploiement sur le serveur"
-          # Nettoyer l'ancienne version de l'application
+          echo "Début du déploiement"
           rm -rf /var/www/ghpagedemo/dist
           mkdir -p /var/www/ghpagedemo/dist
-          
-          # Décompresser et déployer la nouvelle version
           tar -xzvf build.tar.gz -C /var/www/ghpagedemo
-        debug: true
-
-    # 6. Restart Nginx (if necessary)
-    - name: Restart Nginx
-      uses: appleboy/ssh-action@v0.1.6
-      with:
-        host: ${{ secrets.SERVER_IP }}
-        username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SERVER_SSH_KEY }}
-        port: 22
-        script: |
-          echo "Redémarrage de Nginx"
-          sudo systemctl restart nginx
         debug: true
