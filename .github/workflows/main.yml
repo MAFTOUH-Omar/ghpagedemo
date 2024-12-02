@@ -10,23 +10,43 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Install SSH Keys
+    - name: Set Up SSH
       run: |
+        mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
     - name: Pull Changes from Repository
-      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout ${{ secrets.MAIN_BRANCH }} && git pull"
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+        cd ${{ secrets.WORK_DIR }}
+        git checkout ${{ secrets.MAIN_BRANCH }}
+        git pull
+        EOF
 
     - name: Install Dependencies
-      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && npm install"
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+        cd ${{ secrets.WORK_DIR }}
+        npm install
+        EOF
 
     - name: Build Vite Project
-      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && npm run build"
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+        cd ${{ secrets.WORK_DIR }}
+        npm run build
+        EOF
 
     - name: Deploy Built Files
-      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && rm -rf ${{ secrets.DEPLOY_DIR }}/* && cp -r dist/* ${{ secrets.DEPLOY_DIR }}/"
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+        cd ${{ secrets.WORK_DIR }}
+        rm -rf ${{ secrets.DEPLOY_DIR }}/*
+        cp -r dist/* ${{ secrets.DEPLOY_DIR }}/
+        EOF
 
     - name: Cleanup
-      run: rm -rf ~/.ssh
+      run: |
+        rm -rf ~/.ssh
