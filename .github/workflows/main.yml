@@ -17,25 +17,15 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
+    - name: Configure SSH
+      run: |
+        echo -e "Host ${secrets.SSH_HOST}\n\
+        User ${secrets.SSH_USER}\n\
+        IdentityFile ~/.ssh/id_rsa\n\
+        StrictHostKeyChecking no" > ~/.ssh/config
+
     - name: Debug SSH Connection
-      run: ssh -v -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo 'SSH connection successful'"
+      run: ssh -vvv ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo 'SSH connection successful'"
 
     - name: Pull Changes from Repository
-      run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout ${{ secrets.MAIN_BRANCH }} && git pull"
-
-    - name: Install Dependencies
-      run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && npm install"
-
-    - name: Build Vite Project
-      run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && npm run build"
-
-    - name: Deploy Built Files
-      run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && rm -rf ${{ secrets.DEPLOY_DIR }}/* && cp -r dist/* ${{ secrets.DEPLOY_DIR }}/"
-
-    - name: Cleanup
-      run: |
-        rm -rf ~/.ssh
+      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout ${{ secrets.MAIN_BRANCH }} && git pull"
