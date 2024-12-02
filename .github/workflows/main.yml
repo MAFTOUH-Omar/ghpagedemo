@@ -1,12 +1,6 @@
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
 jobs:
   deploy_vite:
-    name: Deploy Vite ghpagedemo
+    name: Deploy Vite Project
     runs-on: ubuntu-latest
 
     steps:
@@ -26,6 +20,12 @@ jobs:
       env:
         SSH_HOST: ${{ secrets.SSH_HOST }}
         SSH_USER: ${{ secrets.SSH_USER }}
+
+    - name: Install Node.js
+      run: |
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -  # Installe la version 20 de Node.js (ou toute autre version supportée)
+        sudo apt-get install -y nodejs
+        node -v  # Vérifiez que la bonne version est installée
 
     - name: Pull Changes from Repository
       run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout ${{ secrets.MAIN_BRANCH }} && git pull && npm i && npm run build && service nginx restart"
