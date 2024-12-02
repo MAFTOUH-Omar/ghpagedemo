@@ -3,12 +3,12 @@ on:
     branches:
       - main
   workflow_dispatch:
-  
+
 jobs:
   deploy_vite:
     name: Deploy Vite Project
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Set Up SSH
       run: |
@@ -17,35 +17,24 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
+    - name: Debug SSH Connection
+      run: ssh -v -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo 'SSH connection successful'"
+
     - name: Pull Changes from Repository
       run: |
-        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
-        cd ${{ secrets.WORK_DIR }}
-        git checkout ${{ secrets.MAIN_BRANCH }}
-        git pull
-        EOF
+        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout ${{ secrets.MAIN_BRANCH }} && git pull"
 
     - name: Install Dependencies
       run: |
-        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
-        cd ${{ secrets.WORK_DIR }}
-        npm install
-        EOF
+        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && npm install"
 
     - name: Build Vite Project
       run: |
-        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
-        cd ${{ secrets.WORK_DIR }}
-        npm run build
-        EOF
+        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && npm run build"
 
     - name: Deploy Built Files
       run: |
-        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
-        cd ${{ secrets.WORK_DIR }}
-        rm -rf ${{ secrets.DEPLOY_DIR }}/*
-        cp -r dist/* ${{ secrets.DEPLOY_DIR }}/
-        EOF
+        ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && rm -rf ${{ secrets.DEPLOY_DIR }}/* && cp -r dist/* ${{ secrets.DEPLOY_DIR }}/"
 
     - name: Cleanup
       run: |
