@@ -19,13 +19,16 @@ jobs:
 
     - name: Configure SSH
       run: |
-        echo -e "Host ${secrets.SSH_HOST}\n\
-        User ${secrets.SSH_USER}\n\
+        echo -e "Host ${SSH_HOST}\n\
+        User ${SSH_USER}\n\
         IdentityFile ~/.ssh/id_rsa\n\
         StrictHostKeyChecking no" > ~/.ssh/config
+      env:
+        SSH_HOST: ${{ secrets.SSH_HOST }}
+        SSH_USER: ${{ secrets.SSH_USER }}
 
-    - name: Debug SSH Connection
-      run: ssh -vvv ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo 'SSH connection successful'"
+    - name: Test SSH Connection
+      run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo 'SSH connection successful'"
 
     - name: Pull Changes from Repository
       run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout ${{ secrets.MAIN_BRANCH }} && git pull"
