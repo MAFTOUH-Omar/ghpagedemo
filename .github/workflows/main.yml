@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy_vite:
-    name: Deploy Vite Project
+    name: Deploy Vite ghpagedemo
     runs-on: ubuntu-latest
 
     steps:
